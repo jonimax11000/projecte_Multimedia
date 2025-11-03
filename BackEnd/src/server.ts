@@ -1,7 +1,7 @@
 import express, { NextFunction, Request, Response } from "express";
-import { CreateUserRequest } from "./interfaces/createUserRequest.js";
+import { createVideoRequest } from "./interfaces/createVideoRequest.js";
 import { errorHandler } from "./middlewares/errorHandler.js";
-import userRouter from "./routes/userRoutes.js";
+import videolistRoutes from "./routes/videolistRoutes.js";
 
 const app = express();
 const port = 3000;
@@ -23,7 +23,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 
 app.use(express.json());
 
-app.use("/api/usuaris", userRouter);
+app.use("/api/videolist", videolistRoutes);
 
 app.use(errorHandler);
 
