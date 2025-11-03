@@ -1,4 +1,4 @@
-# Llistat de pel·lícules
+# Llistat de pel·líucles
 
 En aquet exemple es mostra un llistat de pel·lícules i el seu detall en fer-ne clic sobre elles.
 
