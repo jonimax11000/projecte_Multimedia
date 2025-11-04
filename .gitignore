@@ -117,3 +117,73 @@
 # =============================================
 **/.sass-cache/
 **/.stylelintcache
+
+# =============================================
+# FLUTTER/DART ESPECÍFICO
+# =============================================
+**/.dart_tool/
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/.pub-cache/
+**/.pub/
+**/flutter_*.png
+**/*.class
+**/*.lock
+**/*.pyc
+**/*.swp
+**/.buildlog/
+**/.history
+**/.svn/
+**/migrate_working_dir/
+
+# iOS/XCode específico
+**/ios/**/*.mode1v3
+**/ios/**/*.mode2v3
+**/ios/**/*.moved-aside
+**/ios/**/*.pbxuser
+**/ios/**/*.perspectivev3
+**/ios/**/*sync/
+**/ios/**/.sconsign.dblite
+**/ios/**/.tags*
+**/ios/**/.vagrant/
+**/ios/**/DerivedData/
+**/ios/**/Icon?
+**/ios/**/Pods/
+**/ios/**/.symlinks/
+**/ios/**/profile
+**/ios/**/xcuserdata
+**/ios/.generated/
+**/ios/Flutter/.last_build_id
+**/ios/Flutter/App.framework
+**/ios/Flutter/Flutter.framework
+**/ios/Flutter/Flutter.podspec
+**/ios/Flutter/Generated.xcconfig
+**/ios/Flutter/ephemeral
+**/ios/Flutter/app.flx
+**/ios/Flutter/app.zip
+**/ios/Flutter/flutter_assets/
+**/ios/Flutter/flutter_export_environment.sh
+**/ios/ServiceDefinitions.json
+**/ios/Runner/GeneratedPluginRegistrant.*
+
+# Android específico
+**/android/**/gradle-wrapper.jar
+**/.gradle/
+**/android/captures/
+**/android/gradlew
+**/android/gradlew.bat
+**/android/local.properties
+**/android/**/GeneratedPluginRegistrant.java
+**/android/key.properties
+**/*.jks
+
+# Symbolication y obfuscation
+**/app.*.symbols
+**/app.*.map.json
+
+# =============================================
+# ARCHIVOS DE VÍDEO Y MINIATURAS DEL PROYECTO
+# =============================================
+BackEnd/src/videos/*
+!BackEnd/src/videos/thumbnails/
+BackEnd/src/videos/thumbnails/*

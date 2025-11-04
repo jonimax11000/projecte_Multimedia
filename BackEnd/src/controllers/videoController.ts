@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import {obtenirVideos,obtenirVideoPerId,obtenirVideoPerThumbnail} from "../model/videos.js";
+import {obtenirVideos,obtenirVideoPerId,obtenirVideoPerThumbnail,carregarVideosDesDeCarpeta} from "../model/videos.js";
 
 
 
@@ -31,3 +31,15 @@ export const getVideosPerThumbnail = (req: Request<UserParams>, res: Response) =
 
   res.json(video);
 };
+
+async function inicialitzarVideos() {
+  try {
+    await carregarVideosDesDeCarpeta('./src/videos');
+    console.log('Videos carregats:', obtenirVideos());
+  } catch (error) {
+    console.error('Error carregant videos:', error);
+  }
+}
+
+// Executar la inicialització
+inicialitzarVideos();
