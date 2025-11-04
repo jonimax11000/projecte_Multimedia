@@ -1,0 +1,1 @@
+ /home/jonimax11000/Desktop/DAM/Segundo/movils/projecte_Multimedia/FrontEnd/.dart_tool/flutter_build/02949784393cce99551c2cc2293c8fcf/native_assets.json: 
