@@ -180,10 +180,3 @@
 # Symbolication y obfuscation
 **/app.*.symbols
 **/app.*.map.json
-
-# =============================================
-# ARCHIVOS DE VÍDEO Y MINIATURAS DEL PROYECTO
-# =============================================
-BackEnd/src/videos/*
-!BackEnd/src/videos/thumbnails/
-BackEnd/src/videos/thumbnails/*
