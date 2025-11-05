@@ -12,69 +12,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   // Exemple amb OrientationBuilder
   final List<Map<String, dynamic>> llistaItems = [
-    {
-      "titol": "Star Wars. Episode IV. A new Hope",
-      "director": "George Lucas",
-      "year": 1977,
-      "cover":
-          "https://upload.wikimedia.org/wikipedia/en/8/87/StarWarsMoviePoster1977.jpg",
-    },
-    {
-      "titol": "Star Wars. Episode V. Empire Strikes Back",
-      "director": "Irvin Kershner",
-      "year": 1981,
-      "cover":
-          "https://upload.wikimedia.org/wikipedia/en/3/3f/The_Empire_Strikes_Back_%281980_film%29.jpg",
-    },
-    {
-      "titol": "Star Wars. Episode VI. Return of the Jedi",
-      "director": "Richard Marquand",
-      "year": 1984,
-      "cover":
-          "https://upload.wikimedia.org/wikipedia/en/b/b2/ReturnOfTheJediPoster1983.jpg",
-    },
-    {
-      "titol": "Star Wars. Episode I, The Phantom Menace",
-      "director": "George Lucas",
-      "year": 1999,
-      "cover":
-          "https://upload.wikimedia.org/wikipedia/en/4/40/Star_Wars_Phantom_Menace_poster.jpg",
-    },
-    {
-      "titol": "Star Wars. Episode II. The Clone Attack.",
-      "director": "George Lucas",
-      "year": 2002,
-      "cover":
-          "https://upload.wikimedia.org/wikipedia/en/3/32/Star_Wars_-_Episode_II_Attack_of_the_Clones_%28movie_poster%29.jpg",
-    },
-    {
-      "titol": "Star Wars. Episode III. The Revenge of the Sith",
-      "director": "George Lucas",
-      "year": 2005,
-      "cover":
-          "https://upload.wikimedia.org/wikipedia/en/9/93/Star_Wars_Episode_III_Revenge_of_the_Sith_poster.jpg",
-    },
-    {
-      "titol": "Star Wars. Episode VII. The Force Awakens",
-      "director": "JJ Abrams",
-      "year": 2015,
-      "cover":
-          "https://upload.wikimedia.org/wikipedia/en/a/a2/Star_Wars_The_Force_Awakens_Theatrical_Poster.jpg",
-    },
-    {
-      "titol": "Star Wars. Episode VIII. The Last Jedi",
-      "director": "Rian Johnson",
-      "year": 2017,
-      "cover":
-          "https://upload.wikimedia.org/wikipedia/en/7/7f/Star_Wars_The_Last_Jedi.jpg",
-    },
-    {
-      "titol": "Star Wars. Episode IX. The Rise of Skywalker",
-      "director": "JJ Abrams",
-      "year": 2019,
-      "cover":
-          "https://upload.wikimedia.org/wikipedia/en/a/af/Star_Wars_The_Rise_of_Skywalker_poster.jpg",
-    },
+    
   ];
 
   Map<String, dynamic>? currentFilm;

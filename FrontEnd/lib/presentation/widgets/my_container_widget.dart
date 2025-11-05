@@ -13,7 +13,7 @@ class MyContainerWidget extends StatelessWidget {
         child: film == null
             ? const Padding(
                 padding: EdgeInsets.all(16),
-                child: Text('Selecciona una pel·lícula de la llista'),
+                child: Text(""),
               )
             : Column(
                 mainAxisSize: MainAxisSize.min,

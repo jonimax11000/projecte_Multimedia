@@ -17,7 +17,7 @@ class MyApp extends StatelessWidget {
       title: 'Exercici. Disseny responsiu i reactiu',
       debugShowCheckedModeBanner: false,
       // Definim el tema de l'aplicacicó. Fem ús de l'esquema de colors Teal
-      theme: ThemeData(useMaterial3: true, colorSchemeSeed: Colors.amberAccent),
+      theme: ThemeData(useMaterial3: true, colorSchemeSeed: Colors.purple),
       // Widget principal
       home: HomeScreen(),
     );
