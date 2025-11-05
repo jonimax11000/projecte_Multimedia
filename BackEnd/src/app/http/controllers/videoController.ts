@@ -1,45 +1,40 @@
-import { Request, Response } from "express";
-import {obtenirVideos,obtenirVideoPerId,obtenirVideoPerThumbnail,carregarVideosDesDeCarpeta} from "../../domain/entities/videos";
+import { Request, Response, NextFunction } from "express";
+import { GetVideosUseCase } from "../../domain/usecases/vdeo/GetVideosUseCase";
+import { GetVideoByIdUseCase } from "../../domain/usecases/vdeo/GetUserByIdUseCase";
+import { GetVideoByThumbnailUseCase } from "../../domain/usecases/vdeo/GetUserByThmbnailUseCase";
 
 
 
-export const getVideos=(req: Request, res:Response) =>{ res.json(obtenirVideos()); };
+export class VideoController {
+  constructor(
+        private getVideos: GetVideosUseCase,
+        private getVideoById: GetVideoByIdUseCase,
+        private getVideoByThumbnail: GetVideoByThumbnailUseCase
+    ) { }
 
-interface UserParams {
-  id: string;
-  thumbnail: string;
+    getAll = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            res.json(await this.getVideos.execute());
+        } catch (err) { next(err); }
+    }
+
+    getById = async (req: Request, res: Response, next: NextFunction) => {
+      console.log("Entro al controller de getById");
+      try {
+        const id = req.params.id || "";
+        const video = await this.getVideoById.execute(id);
+        if (!video) return res.status(404).json({ message: "Video not found" });
+        res.json(video);
+      } catch (err) { next(err); }
+    }
+
+    getByThumbnail = async (req: Request, res: Response, next: NextFunction) => {
+      console.log("Entro al controller de getByThumbnail");
+      try {
+        const thumbnail = req.params.topic || "";
+        const video = await this.getVideoByThumbnail.execute(thumbnail);
+        if (!video) return res.status(404).json({ message: "Video not found" });
+        res.json(video);
+      } catch (err) { next(err); }
+    }
 }
-
-export const getVideosPerId = (req: Request<UserParams>, res: Response) => {
-  const id = req.params.id;
-  const video = obtenirVideoPerId(id);
-
-  if (!video) {
-    return res.status(404).json({ error: "Video no trobat" });
-  }
-
-  res.json(video);
-};
-
-export const getVideosPerThumbnail = (req: Request<UserParams>, res: Response) => {
-  const thumbnail = req.params.thumbnail;
-  const video = obtenirVideoPerThumbnail(thumbnail);
-
-  if (!video) {
-    return res.status(404).json({ error: "Video no trobat" });
-  }
-
-  res.json(video);
-};
-
-async function inicialitzarVideos() {
-  try {
-    await carregarVideosDesDeCarpeta('./src/app/data/videos');
-    console.log('Videos carregats:', obtenirVideos());
-  } catch (error) {
-    console.error('Error carregant videos:', error);
-  }
-}
-
-// Executar la inicialització
-inicialitzarVideos();

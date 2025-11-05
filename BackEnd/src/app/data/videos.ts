@@ -1,33 +1,12 @@
 import ffmpeg, { FfprobeData } from 'fluent-ffmpeg';
+import { Video } from '../domain/entities/Video';
 import fs from 'fs';
 import path from 'path';
 
-// Tipus de video (interfície-entitat)
-export interface Video {
-  id: string;
-  nom: string;
-  descripcio: string;
-  duration: number;
-  thumbnail: string;
-}
-
 // Inicialització de l'array d'videos
-export let videos: Array<Video> = [];
+export let videos: Array<Video>=[];
 
-// Funció per obtenir tots els videos
-export const obtenirVideos = () => {
-  return videos;
-};
 
-// Funció per obtenir un video per id
-export const obtenirVideoPerId = (id: string): Video | undefined => {
-  return videos.find(u => u.id === id);
-};
-
-// Funció per obtenir un video per thumbnail
-export const obtenirVideoPerThumbnail = (thumbnail: string): Video | undefined => {
-  return videos.find(u => u.thumbnail === thumbnail);
-};
 
 // Funció per carregar videos des d'una carpeta amb metadades reals
 export const carregarVideosDesDeCarpeta = async (carpetaPath: string): Promise<Video[]> => {
@@ -162,29 +141,5 @@ async function generarThumbnail(videoPath: string, thumbnailPath: string): Promi
   });
 }
 
-// Retorna la ruta física donde guardar el thumbnail
-function obtenirPathThumbnail(nomArxiu: string): string {
-  const nomSenseExtensio = path.parse(nomArxiu).name;
-  return path.join(process.cwd(), 'src', 'videos', 'thumbnails', `${nomSenseExtensio}.jpg`);
-}
-
-// Retorna solo el nombre del archivo thumbnail
-function obtenirPathThumbnailApi(nomArxiu: string): string {
-  const nomSenseExtensio = path.parse(nomArxiu).name;
-  return `${nomSenseExtensio}.jpg`;
-}
-
-// Funció per afegir un video manualment (si es necessari)
-export const afegirVideo = (video: Video): void => {
-  videos.push(video);
-};
-
-// Funció per esborrar un video per ID
-export const esborrarVideoPerId = (id: string): boolean => {
-  const index = videos.findIndex(video => video.id === id);
-  if (index !== -1) {
-    videos.splice(index, 1);
-    return true;
-  }
-  return false;
-};
+videos = await carregarVideosDesDeCarpeta('./src/app/data/videos');
+console.log(`Carregats ${videos.length} videos des de la carpeta.`);
