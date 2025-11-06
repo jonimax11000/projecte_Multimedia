@@ -5,6 +5,10 @@ import videolistRoutes from "./routes/videolistRoutes";
 export function buildServer() {
   const app = express();
   app.use(express.json());
+<<<<<<< HEAD
+=======
+  app.use('/api/videolist/thumbnails', express.static('src/app/data/videos/thumbnails'));
+>>>>>>> origin/guillem
   app.use((req: Request, res: Response, next: NextFunction) => {
     const origin = req.headers.origin;
     

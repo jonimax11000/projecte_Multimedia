@@ -26,7 +26,10 @@ export const carregarVideosDesDeCarpeta = async (carpetaPath: string): Promise<V
           videosTrobats.push(crearInfoVideoBasica(arxiu));
         }
       }
+<<<<<<< HEAD
       videosTrobats.sort((a, b) => a.nom.localeCompare(b.nom, undefined, { sensitivity: 'base' }));
+=======
+>>>>>>> origin/guillem
     }
 
     // Actualitzar l'array global de videos
