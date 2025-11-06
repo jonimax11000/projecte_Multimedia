@@ -5,6 +5,7 @@ import videolistRoutes from "./routes/videolistRoutes";
 export function buildServer() {
   const app = express();
   app.use(express.json());
+  app.use('/api/videolist/thumbnails', express.static('src/app/data/videos/thumbnails'));
   app.use((req: Request, res: Response, next: NextFunction) => {
     const origin = req.headers.origin;
     
