@@ -1,1 +1,0 @@
- /home/jonimax11000/Desktop/DAM/Segundo/movils/projecte_Multimedia/.dart_tool/flutter_build/4f0c51bd098f35c9d3588cf48774f057/dart_build_result.json: 
