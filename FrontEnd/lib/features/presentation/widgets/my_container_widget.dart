@@ -40,7 +40,7 @@ class MyContainerWidget extends StatelessWidget {
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          '${film!['director'] ?? '—'} · ${film!['year'] ?? ''}',
+                          '${film!['titol'] ?? '—'} · ${film!['descripció'] ?? ''}',
                         ),
                         // Aquí podries afegir botons (Acció / Neteja) si vols
                       ],

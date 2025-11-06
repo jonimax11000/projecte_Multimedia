@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 
 class VideosApi {
   final String baseUrl;
-  VideosApi({this.baseUrl = 'http://localhost:3000'});
+  VideosApi({this.baseUrl = 'http://10.0.2.2:3000'});
 
   Future<List<Map<String, dynamic>>> fetchVideos() async {
     final uri = Uri.parse('$baseUrl/api/videolist');

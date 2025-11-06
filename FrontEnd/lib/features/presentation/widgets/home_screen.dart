@@ -1,92 +1,250 @@
-import 'package:exercici_disseny_responsiu_stateful/features/presentation/widgets/my_container_widget.dart';
-import 'package:exercici_disseny_responsiu_stateful/features/presentation/widgets/my_list_widget.dart';
 import 'package:flutter/material.dart';
+import '../../domain/entities/video.dart';
+import '../../domain/usecases/get_videos.dart';
+import '../../../injection_container.dart' as di;
+import '../widgets/my_list_widget.dart';
 
 class HomeScreen extends StatefulWidget {
-  HomeScreen({super.key});
+  const HomeScreen({super.key});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  // Exemple amb OrientationBuilder
-  final List<Map<String, dynamic>> llistaItems = [
-    
-  ];
+  Video? _selectedVideo;
+  late final GetVideos getVideos;
+  List<Video>? videos;
+  bool isLoading = true;
+  String? errorMessage;
 
-  Map<String, dynamic>? currentFilm;
+  @override
+  void initState() {
+    super.initState();
+    getVideos = di.sl<GetVideos>();
+    _loadVideos();
+  }
 
-  _setFilm(Map<String, dynamic>? film) {
+  Future<void> _loadVideos() async {
+    try {
+      final result = await getVideos();
+      setState(() {
+        videos = result;
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        errorMessage = e.toString();
+        isLoading = false;
+      });
+    }
+  }
+
+  void _onVideoTap(Video video) {
     setState(() {
-      currentFilm = film;
+      _selectedVideo = video;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    // Aquesta pantalla conté un scaffold amb la barra d'aplicacions i un cos
     return Scaffold(
-      appBar: AppBar(title: const Text('OrientationBuilder Example')),
-      // El body és un SafeArea: Widget que evita la interfície del sistema
-      body: SafeArea(
-        // Reacciona explícitament a canvis d’orientació del pare
-        // Rebem orientation en el builder
-        child: OrientationBuilder(
-          builder: (context, orientation) {
-            // isLandscape rep el valor de la comparació orientation==Orientation.landscape
-            final isLandscape = orientation == Orientation.landscape;
-            // Segons aquest, retornem un o altre arbre de widgets (ui declarativa)
-            return isLandscape
-                ? _sideBySideLayout(context, _setFilm)
-                : _stackedLayout(context, _setFilm);
-          },
+      backgroundColor: const Color(0xFF121212),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF1E1E1E),
+        elevation: 0,
+        title: const Text(
+          'Videos',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+          ),
         ),
+        centerTitle: true,
       ),
+      body: isLoading
+          ? const Center(
+              child: CircularProgressIndicator(
+                color: Colors.blueAccent,
+              ),
+            )
+          : errorMessage != null
+              ? Center(
+                  child: Text(
+                    'Error: $errorMessage',
+                    style: const TextStyle(color: Colors.white70),
+                  ),
+                )
+              : SafeArea(
+                  child: OrientationBuilder(
+                    builder: (context, orientation) {
+                      final isLandscape = orientation == Orientation.landscape;
+                      
+                      // Si está en landscape y hay un video seleccionado, usar layout horizontal
+                      if (isLandscape && _selectedVideo != null) {
+                        return _buildLandscapeLayout();
+                      } else {
+                        return _buildPortraitLayout();
+                      }
+                    },
+                  ),
+                ),
     );
   }
 
-  /* ============================
-    Helpers de composició layout
-    Els introduim com a mètodes del propi estat, per accedir a la informació necessària
-   ============================ 
-   */
+  Widget _buildPortraitLayout() {
+    return Column(
+      children: [
+        // Targeta del vídeo seleccionat (arriba en portrait)
+        if (_selectedVideo != null) ...[
+          _buildSelectedVideoCard(),
+          const SizedBox(height: 16),
+        ],
+        // Llista de vídeos
+        Expanded(
+          child: MyListWidget(
+            videos: videos ?? [],
+            onVideoTap: _onVideoTap,
+          ),
+        ),
+      ],
+    );
+  }
 
-  /// Disposició *top–bottom* (portrait): contenidor dalt, llista baix.
-  ///
-  Widget _stackedLayout(
-    BuildContext context,
-    Function(Map<String, dynamic>?) callback,
-  ) {
-    return Padding(
-      padding: const EdgeInsets.all(12),
-      child: Column(
-        children: [
-          // El contenidor ocupa alçada intrínseca; la llista s’expandeix
-          MyContainerWidget(film: currentFilm),
-          const SizedBox(height: 12),
-          Expanded(
-            child: MyListWidget(items: llistaItems, callback: _setFilm),
+  Widget _buildLandscapeLayout() {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Targeta del vídeo seleccionat (izquierda en landscape)
+        Flexible(
+          flex: 2,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: _buildSelectedVideoCard(),
+          ),
+        ),
+        // Llista de vídeos (derecha en landscape)
+        Flexible(
+          flex: 3,
+          child: MyListWidget(
+            videos: videos ?? [],
+            onVideoTap: _onVideoTap,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSelectedVideoCard() {
+    return Container(
+      constraints: const BoxConstraints(
+        maxHeight: 400,
+      ),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1E1E1E),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.3),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
-    );
-  }
-
-  /// Disposició *side‑by‑side* (landscape): contenidor esquerra, llista dreta.
-  Widget _sideBySideLayout(
-    BuildContext context,
-    Function(Map<String, dynamic>?) callback,
-  ) {
-    return Padding(
-      padding: const EdgeInsets.all(12),
-      child: Row(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Flexible(flex: 2, child: MyContainerWidget(film: currentFilm)),
-          const SizedBox(width: 12),
+          // Miniatura del vídeo
+          ClipRRect(
+            borderRadius: const BorderRadius.vertical(
+              top: Radius.circular(16),
+            ),
+            child: SizedBox(
+              height: 200,
+              width: double.infinity,
+              child: _selectedVideo!.thumbnail.isNotEmpty
+                  ? Image.asset(
+                      _selectedVideo!.thumbnail,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          color: const Color(0xFF2A2A2A),
+                          child: const Icon(
+                            Icons.broken_image,
+                            color: Colors.white54,
+                            size: 64,
+                          ),
+                        );
+                      },
+                    )
+                  : Container(
+                      color: const Color(0xFF2A2A2A),
+                      child: const Icon(
+                        Icons.video_library,
+                        color: Colors.white54,
+                        size: 64,
+                      ),
+                    ),
+            ),
+          ),
+          // Informació del vídeo
           Flexible(
-            flex: 3,
-            child: MyListWidget(items: llistaItems, callback: _setFilm),
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Títol
+                    Text(
+                      _selectedVideo!.nom,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.5,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 10),
+                    // Duració
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.access_time,
+                          color: Colors.white70,
+                          size: 16,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          '${(_selectedVideo!.duration ~/ 60)}:${(_selectedVideo!.duration % 60).toString().padLeft(2, '0')}',
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    // Descripció
+                    Text(
+                      _selectedVideo!.descripcio,
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 14,
+                        height: 1.4,
+                      ),
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
         ],
       ),
