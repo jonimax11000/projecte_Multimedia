@@ -53,15 +53,25 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         backgroundColor: const Color(0xFF1E1E1E),
         elevation: 0,
-        title: const Text(
-          'Videos',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
+        title: Padding(
+          padding: const EdgeInsets.only(top: 10.0,right: 24), // Margen superior
+          child: SafeArea(
+            child: Image.asset(
+              "assets/img/justflix.png",
+              height: 44,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  color: const Color(0xFF2A2A2A),
+                  child: const Icon(
+                    Icons.broken_image,
+                    color: Colors.white54,
+                    size: 64,
+                  ),
+                );
+              },
+            )
           ),
         ),
-        centerTitle: true,
       ),
       body: isLoading
           ? const Center(
@@ -76,30 +86,32 @@ class _HomeScreenState extends State<HomeScreen> {
                     style: const TextStyle(color: Colors.white70),
                   ),
                 )
-              : SafeArea(
-                  child: OrientationBuilder(
-                    builder: (context, orientation) {
-                      final isLandscape = orientation == Orientation.landscape;
-                      
-                      // Si está en landscape y hay un video seleccionado, usar layout horizontal
-                      if (isLandscape && _selectedVideo != null) {
-                        return _buildLandscapeLayout();
-                      } else {
-                        return _buildPortraitLayout();
-                      }
-                    },
+              : Padding(
+                  padding: const EdgeInsets.only(left: 24,right: 24), // Margen superior
+                  child: SafeArea(
+                    child: OrientationBuilder(
+                      builder: (context, orientation) {
+                        final isLandscape = orientation == Orientation.landscape;
+                        
+                        // Si está en landscape y hay un video seleccionado, usar layout horizontal
+                        if (isLandscape && _selectedVideo != null) {
+                          return _buildLandscapeLayout();
+                        } else {
+                          return _buildPortraitLayout();
+                        }
+                      },
+                    ),
                   ),
                 ),
     );
   }
-
   Widget _buildPortraitLayout() {
     return Column(
       children: [
         // Targeta del vídeo seleccionat (arriba en portrait)
         if (_selectedVideo != null) ...[
           _buildSelectedVideoCard(),
-          const SizedBox(height: 16),
+          const SizedBox(height: 2),
         ],
         // Llista de vídeos
         Expanded(
@@ -120,7 +132,7 @@ class _HomeScreenState extends State<HomeScreen> {
         Flexible(
           flex: 2,
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(2),
             child: _buildSelectedVideoCard(),
           ),
         ),
@@ -140,6 +152,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Container(
       constraints: const BoxConstraints(
         maxHeight: 400,
+        minHeight: 50,
       ),
       decoration: BoxDecoration(
         color: const Color(0xFF1E1E1E),
@@ -167,7 +180,7 @@ class _HomeScreenState extends State<HomeScreen> {
               child: _selectedVideo!.thumbnail.isNotEmpty
                   ? Image.asset(
                       _selectedVideo!.thumbnail,
-                      fit: BoxFit.cover,
+                      fit: BoxFit.fitHeight,
                       errorBuilder: (context, error, stackTrace) {
                         return Container(
                           color: const Color(0xFF2A2A2A),
