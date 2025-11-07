@@ -57,7 +57,7 @@ function obtenirMetadadesVideo(nomArxiu: string, carpetaPath: string): Promise<V
       const durada = Math.floor(metadades.format.duration || 0);
       const streamVideo = metadades.streams.find((stream) => stream.codec_type === 'video');
 
-      const nomVideo = path.parse(nomArxiu).name;
+      const nomVideo = path.parse(nomArxiu).name.toLowerCase();
       const nomSenseEspais = nomVideo.replace(/\s+/g, '');
       const video: Video = {
         id: generarId(nomArxiu),
