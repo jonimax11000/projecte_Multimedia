@@ -1,11 +1,22 @@
 import express, { NextFunction, Request, Response } from "express";
 import videolistRoutes from "./routes/videolistRoutes";
+import path from "path";
+import { fileURLToPath } from "url";
 
+// Solución para __dirname en ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export function buildServer() {
   const app = express();
   app.use(express.json());
-  app.use('/api/videolist/thumbnails', express.static('src/app/data/videos/thumbnails'));
+  
+  // SERVIR ARCHIVOS ESTÁTICOS - Configuración corregida
+  const publicPath = path.join(__dirname, '../../app/public');
+  app.use('/thumbnails', express.static(path.join(publicPath, 'thumbnails')));
+  app.use('/videos', express.static(path.join(publicPath, 'videos')));
+  
+  // Configuración CORS
   app.use((req: Request, res: Response, next: NextFunction) => {
     const origin = req.headers.origin;
     
@@ -21,26 +32,23 @@ export function buildServer() {
     next();
   });
 
-  
-
+  // Rutas de la API
   app.use("/api/videolist", videolistRoutes);
 
+  // Manejo de rutas no encontradas
   app.use((req: Request, res: Response) => {
     res.status(404).json({ message: "Resource not found" });
   });
 
+  // Manejo de errores
   app.use((err: any, req: Request, res: Response, next: NextFunction) => {
-    console.error(err); // Log per consola (o logger a futur)
-
-    // Si ja té codi d'estat assignat; l’utilitzem
+    console.error(err);
     const status = err.status || 500;
-
     res.status(status).json({
       error: true,
       message: err.message || "Internal server error",
     });
   });
-
 
   return app;
 }

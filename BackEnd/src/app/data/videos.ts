@@ -4,9 +4,7 @@ import fs from 'fs';
 import path from 'path';
 
 // Inicialització de l'array d'videos
-export let videos: Array<Video>=[];
-
-
+export let videos: Array<Video> = [];
 
 // Funció per carregar videos des d'una carpeta amb metadades reals
 export const carregarVideosDesDeCarpeta = async (carpetaPath: string): Promise<Video[]> => {
@@ -30,6 +28,7 @@ export const carregarVideosDesDeCarpeta = async (carpetaPath: string): Promise<V
 
     // Actualitzar l'array global de videos
     videos = videosTrobats;
+    console.log(`📹 Carregats ${videos.length} videos des de la carpeta.`);
     return videos;
     
   } catch (error) {
@@ -59,12 +58,14 @@ function obtenirMetadadesVideo(nomArxiu: string, carpetaPath: string): Promise<V
 
       const nomVideo = path.parse(nomArxiu).name.toLowerCase();
       const nomSenseEspais = nomVideo.replace(/\s+/g, '');
+      
       const video: Video = {
         id: generarId(nomArxiu),
         nom: nomVideo,
         descripcio: generarDescripcio(streamVideo, durada),
         duration: durada,
-        thumbnail: `${nomSenseEspais}.jpg`
+        thumbnail: `/thumbnails/${nomSenseEspais}.jpg`, // Ruta relativa al thumbnail
+        videoUrl: `/videos/${nomSenseEspais}/index.m3u8` // Nueva propiedad: ruta al HLS
       };
 
       resolve(video);
@@ -74,12 +75,15 @@ function obtenirMetadadesVideo(nomArxiu: string, carpetaPath: string): Promise<V
 
 function crearInfoVideoBasica(nomArxiu: string): Video {
   const nomVideo = path.parse(nomArxiu).name;
+  const nomSenseEspais = nomVideo.replace(/\s+/g, '');
+  
   return {
     id: generarId(nomArxiu),
     nom: nomVideo,
     descripcio: `Video: ${nomArxiu}`,
     duration: 0,
-    thumbnail: `${nomVideo}.jpg`
+    thumbnail: `/thumbnails/${nomSenseEspais}.jpg`, // Ruta relativa actualizada
+    videoUrl: `/videos/${nomSenseEspais}/index.m3u8` // Nueva propiedad
   };
 }
 
@@ -126,20 +130,3 @@ function formatarDurada(segons: number): string {
     return `${segonsRestants}s`;
   }
 }
-
-async function generarThumbnail(videoPath: string, thumbnailPath: string): Promise<void> {
-  return new Promise((resolve, reject) => {
-    ffmpeg(videoPath)
-      .screenshots({
-        timestamps: ['00:00:01'],
-        filename: path.basename(thumbnailPath),
-        folder: path.dirname(thumbnailPath),
-        size: '320x180'
-      })
-      .on('end', () => resolve())
-      .on('error', (err: Error) => reject(err));
-  });
-}
-
-videos = await carregarVideosDesDeCarpeta('./src/app/data/videos');
-console.log(`Carregats ${videos.length} videos des de la carpeta.`);

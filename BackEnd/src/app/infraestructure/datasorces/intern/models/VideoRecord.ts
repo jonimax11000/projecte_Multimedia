@@ -4,4 +4,5 @@ export interface VideoRecord {
   descripcio: string;
   duration: number;
   thumbnail: string;
+  videoUrl: string; 
 }
