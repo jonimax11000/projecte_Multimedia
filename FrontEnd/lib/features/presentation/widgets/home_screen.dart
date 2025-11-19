@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:video_player/video_player.dart';
 import '../../domain/entities/video.dart';
 import '../../domain/usecases/get_videos.dart';
 import '../../../injection_container.dart' as di;
@@ -17,12 +18,20 @@ class _HomeScreenState extends State<HomeScreen> {
   List<Video>? videos;
   bool isLoading = true;
   String? errorMessage;
+  VideoPlayerController? _videoController;
+  bool _isVideoInitialized = false;
 
   @override
   void initState() {
     super.initState();
     getVideos = di.sl<GetVideos>();
     _loadVideos();
+  }
+
+  @override
+  void dispose() {
+    _videoController?.dispose();
+    super.dispose();
   }
 
   Future<void> _loadVideos() async {
@@ -40,10 +49,63 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Future<void> _initializeVideo(String videoUrl) async {
+    // Dispose del controlador anterior si existe
+    await _videoController?.dispose();
+    
+    setState(() {
+      _isVideoInitialized = false;
+    });
+
+    // Crear nuevo controlador
+    // Usa networkUrl para URLs remotas o asset para videos locales
+    _videoController = VideoPlayerController.networkUrl(
+      Uri.parse('http://10.0.2.2:3000'+videoUrl),
+    );
+
+    // Si tus videos son assets locales, usa en su lugar:
+    // _videoController = VideoPlayerController.asset(videoUrl);
+
+    try {
+      await _videoController!.initialize();
+      setState(() {
+        _isVideoInitialized = true;
+      });
+      // Auto-play al cargar
+      _videoController!.play();
+      
+      // Listener para actualizar el UI cuando cambia el estado
+      _videoController!.addListener(() {
+        if (mounted) {
+          setState(() {});
+        }
+      });
+    } catch (e) {
+      print('Error initializing video: $e');
+      setState(() {
+        _isVideoInitialized = false;
+      });
+    }
+  }
+
   void _onVideoTap(Video video) {
     setState(() {
       _selectedVideo = video;
     });
+    
+    // Inicializar el video cuando se selecciona
+    // IMPORTANTE: Asegúrate de que tu entidad Video tenga una propiedad 'url' o similar
+    // Ajusta según tu modelo de datos:
+    // - Si tienes video.url -> usa video.url
+    // - Si tienes video.videoPath -> usa video.videoPath
+    // - Si guardas la URL en otra propiedad, ajusta aquí
+    
+    // Ejemplo asumiendo que existe video.url:
+    if (video.url.isNotEmpty) {
+      _initializeVideo(video.url);
+    } else {
+      print('Video URL not available');
+    }
   }
 
   @override
@@ -54,7 +116,7 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: const Color(0xFF1E1E1E),
         elevation: 0,
         title: Padding(
-          padding: const EdgeInsets.only(top: 10.0,right: 24), // Margen superior
+          padding: const EdgeInsets.only(top: 10.0, right: 24),
           child: SafeArea(
             child: Image.asset(
               "assets/img/justflix.png",
@@ -69,7 +131,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 );
               },
-            )
+            ),
           ),
         ),
       ),
@@ -87,13 +149,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 )
               : Padding(
-                  padding: const EdgeInsets.only(left: 24,right: 24), // Margen superior
+                  padding: const EdgeInsets.only(left: 24, right: 24),
                   child: SafeArea(
                     child: OrientationBuilder(
                       builder: (context, orientation) {
                         final isLandscape = orientation == Orientation.landscape;
                         
-                        // Si está en landscape y hay un video seleccionado, usar layout horizontal
                         if (isLandscape && _selectedVideo != null) {
                           return _buildLandscapeLayout();
                         } else {
@@ -105,15 +166,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
     );
   }
+
   Widget _buildPortraitLayout() {
     return Column(
       children: [
-        // Targeta del vídeo seleccionat (arriba en portrait)
         if (_selectedVideo != null) ...[
-          _buildSelectedVideoCard(),
+          _buildVideoPlayerCard(),
           const SizedBox(height: 2),
         ],
-        // Llista de vídeos
         Expanded(
           child: MyListWidget(
             videos: videos ?? [],
@@ -128,15 +188,13 @@ class _HomeScreenState extends State<HomeScreen> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Targeta del vídeo seleccionat (izquierda en landscape)
         Flexible(
           flex: 2,
           child: Padding(
             padding: const EdgeInsets.all(2),
-            child: _buildSelectedVideoCard(),
+            child: _buildVideoPlayerCard(),
           ),
         ),
-        // Llista de vídeos (derecha en landscape)
         Flexible(
           flex: 3,
           child: MyListWidget(
@@ -148,11 +206,11 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildSelectedVideoCard() {
+  Widget _buildVideoPlayerCard() {
     return Container(
       constraints: const BoxConstraints(
-        maxHeight: 400,
-        minHeight: 50,
+        maxHeight: 600,
+        minHeight: 200,
       ),
       decoration: BoxDecoration(
         color: const Color(0xFF1E1E1E),
@@ -169,40 +227,102 @@ class _HomeScreenState extends State<HomeScreen> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Miniatura del vídeo
+          // Reproductor de vídeo
           ClipRRect(
             borderRadius: const BorderRadius.vertical(
               top: Radius.circular(16),
             ),
-            child: SizedBox(
-              height: 200,
-              width: double.infinity,
-              child: _selectedVideo!.thumbnail.isNotEmpty
-                  ? Image.asset(
-                      _selectedVideo!.thumbnail,
-                      fit: BoxFit.fitHeight,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          color: const Color(0xFF2A2A2A),
-                          child: const Icon(
-                            Icons.broken_image,
-                            color: Colors.white54,
-                            size: 64,
+            child: Container(
+              color: Colors.black,
+              constraints: const BoxConstraints(
+                minHeight: 200,
+                maxHeight: 400,
+              ),
+              child: _isVideoInitialized && _videoController != null
+                  ? AspectRatio(
+                      aspectRatio: _videoController!.value.aspectRatio,
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          VideoPlayer(_videoController!),
+                          // Overlay para detectar toques
+                          Positioned.fill(
+                            child: GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  if (_videoController!.value.isPlaying) {
+                                    _videoController!.pause();
+                                  } else {
+                                    _videoController!.play();
+                                  }
+                                });
+                              },
+                              child: Container(
+                                color: Colors.transparent,
+                                child: Center(
+                                  child: AnimatedOpacity(
+                                    opacity: _videoController!.value.isPlaying ? 0.0 : 1.0,
+                                    duration: const Duration(milliseconds: 200),
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: Colors.black54,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      padding: const EdgeInsets.all(16),
+                                      child: const Icon(
+                                        Icons.play_arrow,
+                                        color: Colors.white,
+                                        size: 48,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
                           ),
-                        );
-                      },
+                          // Controles del video en la parte inferior
+                          Positioned(
+                            bottom: 0,
+                            left: 0,
+                            right: 0,
+                            child: _buildVideoControls(),
+                          ),
+                        ],
+                      ),
                     )
-                  : Container(
-                      color: const Color(0xFF2A2A2A),
-                      child: const Icon(
-                        Icons.video_library,
-                        color: Colors.white54,
-                        size: 64,
+                  : SizedBox(
+                      height: 250,
+                      child: Center(
+                        child: _selectedVideo!.thumbnail.isNotEmpty
+                            ? Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  Image.asset(
+                                    _selectedVideo!.thumbnail,
+                                    fit: BoxFit.cover,
+                                    width: double.infinity,
+                                    height: double.infinity,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return const Center(
+                                        child: CircularProgressIndicator(
+                                          color: Colors.blueAccent,
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                  const CircularProgressIndicator(
+                                    color: Colors.blueAccent,
+                                  ),
+                                ],
+                              )
+                            : const CircularProgressIndicator(
+                                color: Colors.blueAccent,
+                              ),
                       ),
                     ),
             ),
           ),
-          // Informació del vídeo
+          // Información del vídeo
           Flexible(
             child: SingleChildScrollView(
               child: Padding(
@@ -210,7 +330,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Títol
                     Text(
                       _selectedVideo!.nom,
                       style: const TextStyle(
@@ -223,7 +342,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 10),
-                    // Duració
                     Row(
                       children: [
                         const Icon(
@@ -243,7 +361,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       ],
                     ),
                     const SizedBox(height: 10),
-                    // Descripció
                     Text(
                       _selectedVideo!.descripcio,
                       style: const TextStyle(
@@ -262,5 +379,104 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
     );
+  }
+
+  Widget _buildVideoControls() {
+    if (_videoController == null || !_videoController!.value.isInitialized) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Colors.transparent,
+            Colors.black.withOpacity(0.7),
+          ],
+        ),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Barra de progreso
+          VideoProgressIndicator(
+            _videoController!,
+            allowScrubbing: true,
+            colors: const VideoProgressColors(
+              playedColor: Colors.blueAccent,
+              bufferedColor: Colors.white24,
+              backgroundColor: Colors.white12,
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          ),
+          // Controles
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            child: Row(
+              children: [
+                // Botón play/pause
+                IconButton(
+                  icon: Icon(
+                    _videoController!.value.isPlaying
+                        ? Icons.pause
+                        : Icons.play_arrow,
+                    color: Colors.white,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      if (_videoController!.value.isPlaying) {
+                        _videoController!.pause();
+                      } else {
+                        _videoController!.play();
+                      }
+                    });
+                  },
+                ),
+                const Spacer(),
+                // Tiempo actual / duración total
+                Text(
+                  _formatDuration(_videoController!.value.position),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const Text(
+                  ' / ',
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 12,
+                  ),
+                ),
+                Text(
+                  _formatDuration(_videoController!.value.duration),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(width: 8),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatDuration(Duration duration) {
+    String twoDigits(int n) => n.toString().padLeft(2, '0');
+    final hours = duration.inHours;
+    final minutes = duration.inMinutes.remainder(60);
+    final seconds = duration.inSeconds.remainder(60);
+    
+    if (hours > 0) {
+      return '$hours:${twoDigits(minutes)}:${twoDigits(seconds)}';
+    }
+    return '${twoDigits(minutes)}:${twoDigits(seconds)}';
   }
 }

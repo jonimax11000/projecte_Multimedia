@@ -16,7 +16,8 @@ class VideosRepositoryImpl implements VideosRepository {
               nom: m['nom'] ?? '',
               descripcio: m['descripcio'] ?? '',
               duration: m['duration'] ?? 0,
-              thumbnail: 'assets/img/' + (m['thumbnail'] ?? ''),
+              thumbnail: m['thumbnail'],
+              url: m['url'], 
             ))
         .toList();
   }
