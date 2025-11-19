@@ -8,7 +8,7 @@
     "test": "tsx test.ts",
     "build": "tsc",
     "start": "tsx src/index.ts",
-    "process-videos": "tsx src/app/infraestructure/services/videoProcessor.ts",
+    "process-videos": "tsx src/app/infraestructure/services/in.ts",
     "clean-videos": "rm -rf src/app/public/videos/* src/app/public/thumbnails/*",
     "reset-videos": "npm run clean-videos && npm run process-videos"
   },
