@@ -12,11 +12,13 @@ export class VideoController {
         private getVideoByThumbnail: GetVideoByThumbnailUseCase
     ) { }
 
-    getAll = async (req: Request, res: Response, next: NextFunction) => {
-        try {
-            res.json(await this.getVideos.execute());
-        } catch (err) { next(err); }
-    }
+  getAll = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const videos = await this.getVideos.execute();
+        console.log(`🎬 Controller: devolviendo ${videos.length} videos`);
+        res.json(videos);
+    } catch (err) { next(err); }
+  }
 
     getById = async (req: Request, res: Response, next: NextFunction) => {
       console.log("Entro al controller de getById");

@@ -1,12 +1,16 @@
 {
   "name": "projecte-multimedia",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "",
   "main": "src/index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",
+    "test": "tsx test.ts",
     "build": "tsc",
-    "start": "tsx src/index.ts"
+    "start": "npm run clean-videos && tsx src/index.ts",
+    "process-videos": "tsx src/app/infraestructure/services/videoProcessor.ts",
+    "clean-videos": "rm -rf src/app/public/videos/* src/app/public/thumbnails/*",
+    "reset-videos": "npm run clean-videos && npm run process-videos"
   },
   "keywords": [],
   "author": "",
