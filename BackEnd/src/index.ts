@@ -4,16 +4,15 @@ import { carregarVideosDesDeCarpeta } from './app/data/videos.js';
 
 async function startServer() {
   try {
-    console.log('🚀 Iniciando servidor con arquitectura CLEAN...');
+   
+  
+    //await initializeVideos();
     
-    // 1. Primero procesar videos (HLS + thumbnails)
-    await initializeVideos();
-    
-    // 2. Luego cargar los videos en el array
+
     console.log('📹 Cargando videos en memoria...');
     await carregarVideosDesDeCarpeta('./src/app/data/videos');
     
-    // 3. Finalmente iniciar el servidor
+   
     const app = buildServer();
     const PORT = process.env.PORT || 3000;
 

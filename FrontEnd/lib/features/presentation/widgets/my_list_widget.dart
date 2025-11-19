@@ -63,8 +63,8 @@ class MyListWidget extends StatelessWidget {
                     height: 80,
                     color: const Color(0xFF2A2A2A),
                     child: video.thumbnail.isNotEmpty
-                        ? Image.asset(
-                            video.thumbnail,
+                        ? Image.network(
+                            "http://10.0.2.2:3000${video.thumbnail}",
                             fit: BoxFit.cover,
                             errorBuilder: (context, error, stackTrace) {
                               return const Icon(

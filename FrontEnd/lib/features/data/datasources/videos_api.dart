@@ -19,7 +19,7 @@ class VideosApi {
               'descripcio': e['descripcio'],
               'duration': e['duration'],
               'thumbnail': e['thumbnail'],
-              'url': e['url'], 
+              'url': e['videoUrl'], 
             };
           }).toList();
         } else {

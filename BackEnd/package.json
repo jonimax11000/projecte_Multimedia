@@ -7,7 +7,7 @@
     "dev": "tsx watch src/index.ts",
     "test": "tsx test.ts",
     "build": "tsc",
-    "start": "npm run clean-videos && tsx src/index.ts",
+    "start": "tsx src/index.ts",
     "process-videos": "tsx src/app/infraestructure/services/videoProcessor.ts",
     "clean-videos": "rm -rf src/app/public/videos/* src/app/public/thumbnails/*",
     "reset-videos": "npm run clean-videos && npm run process-videos"

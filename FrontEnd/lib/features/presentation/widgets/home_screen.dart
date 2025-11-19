@@ -60,7 +60,7 @@ class _HomeScreenState extends State<HomeScreen> {
     // Crear nuevo controlador
     // Usa networkUrl para URLs remotas o asset para videos locales
     _videoController = VideoPlayerController.networkUrl(
-      Uri.parse(videoUrl),
+      Uri.parse('http://10.0.2.2:3000'+videoUrl),
     );
 
     // Si tus videos son assets locales, usa en su lugar:
@@ -101,8 +101,8 @@ class _HomeScreenState extends State<HomeScreen> {
     // - Si guardas la URL en otra propiedad, ajusta aquí
     
     // Ejemplo asumiendo que existe video.url:
-    if (video.url != null && video.url!.isNotEmpty) {
-      _initializeVideo(video.url!);
+    if (video.url.isNotEmpty) {
+      _initializeVideo(video.url);
     } else {
       print('Video URL not available');
     }
