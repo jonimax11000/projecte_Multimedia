@@ -386,6 +386,8 @@ class _HomeScreenState extends State<HomeScreen> {
       return const SizedBox.shrink();
     }
 
+    bool _wasPlaying = false;
+
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -400,16 +402,34 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Barra de progreso
-          VideoProgressIndicator(
-            _videoController!,
-            allowScrubbing: true,
-            colors: const VideoProgressColors(
-              playedColor: Colors.blueAccent,
-              bufferedColor: Colors.white24,
-              backgroundColor: Colors.white12,
+          // Barra de progreso con Listener para manejar el audio
+          Listener(
+            onPointerDown: (details) {
+              // Guardar estado de reproducción al empezar scrubbing
+              _wasPlaying = _videoController!.value.isPlaying;
+              if (_wasPlaying) {
+                _videoController!.pause();
+              }
+            },
+            onPointerUp: (details) async {
+              // Esperar a que cargue el buffer/audio después del scrubbing
+              await Future.delayed(Duration(milliseconds: 500));
+              
+              // Reanudar solo si estaba reproduciéndose antes
+              if (_wasPlaying && mounted) {
+                await _videoController!.play();
+              }
+            },
+            child: VideoProgressIndicator(
+              _videoController!,
+              allowScrubbing: true,
+              colors: const VideoProgressColors(
+                playedColor: Colors.blueAccent,
+                bufferedColor: Colors.white24,
+                backgroundColor: Colors.white12,
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             ),
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           ),
           // Controles
           Padding(
