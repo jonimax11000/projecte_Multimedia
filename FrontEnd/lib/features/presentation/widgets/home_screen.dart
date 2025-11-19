@@ -411,15 +411,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 _videoController!.pause();
               }
             },
-            onPointerUp: (details) async {
-              // Esperar a que cargue el buffer/audio después del scrubbing
-              await Future.delayed(Duration(milliseconds: 500));
-              
-              // Reanudar solo si estaba reproduciéndose antes
-              if (_wasPlaying && mounted) {
-                await _videoController!.play();
-              }
-            },
+
             child: VideoProgressIndicator(
               _videoController!,
               allowScrubbing: true,
