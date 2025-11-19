@@ -52,7 +52,6 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _initializeVideo(String videoUrl) async {
     // Dispose del controlador anterior si existe
     await _videoController?.dispose();
-    
     setState(() {
       _isVideoInitialized = false;
     });
@@ -72,7 +71,7 @@ class _HomeScreenState extends State<HomeScreen> {
         _isVideoInitialized = true;
       });
       // Auto-play al cargar
-      _videoController!.play();
+      _videoController!.pause();
       
       // Listener para actualizar el UI cuando cambia el estado
       _videoController!.addListener(() {
@@ -93,14 +92,6 @@ class _HomeScreenState extends State<HomeScreen> {
       _selectedVideo = video;
     });
     
-    // Inicializar el video cuando se selecciona
-    // IMPORTANTE: Asegúrate de que tu entidad Video tenga una propiedad 'url' o similar
-    // Ajusta según tu modelo de datos:
-    // - Si tienes video.url -> usa video.url
-    // - Si tienes video.videoPath -> usa video.videoPath
-    // - Si guardas la URL en otra propiedad, ajusta aquí
-    
-    // Ejemplo asumiendo que existe video.url:
     if (video.url.isNotEmpty) {
       _initializeVideo(video.url);
     } else {
