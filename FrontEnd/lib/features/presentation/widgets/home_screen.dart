@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:video_player/video_player.dart';
 import '../../domain/entities/video.dart';
 import '../../domain/usecases/get_videos.dart';
@@ -20,6 +21,9 @@ class _HomeScreenState extends State<HomeScreen> {
   String? errorMessage;
   VideoPlayerController? _videoController;
   bool _isVideoInitialized = false;
+  bool _isScrubbing = false;
+  bool _wasPlayingBeforeScrubbing = false;
+  bool _isFullScreen = false;
 
   @override
   void initState() {
@@ -31,6 +35,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void dispose() {
     _videoController?.dispose();
+    _exitFullScreen();
     super.dispose();
   }
 
@@ -50,30 +55,26 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _initializeVideo(String videoUrl) async {
-    // Dispose del controlador anterior si existe
     await _videoController?.dispose();
     setState(() {
       _isVideoInitialized = false;
+      _isScrubbing = false;
     });
 
-    // Crear nuevo controlador
-    // Usa networkUrl para URLs remotas o asset para videos locales
     _videoController = VideoPlayerController.networkUrl(
-      Uri.parse('http://10.0.2.2:3000'+videoUrl),
+      Uri.parse('http://10.0.2.2:3000$videoUrl'),
     );
-
-    // Si tus videos son assets locales, usa en su lugar:
-    // _videoController = VideoPlayerController.asset(videoUrl);
 
     try {
       await _videoController!.initialize();
+      await _videoController!.setVolume(1.0);
+      
       setState(() {
         _isVideoInitialized = true;
       });
-      // Auto-play al cargar
-      _videoController!.pause();
       
-      // Listener para actualizar el UI cuando cambia el estado
+      await _videoController!.play();
+      
       _videoController!.addListener(() {
         if (mounted) {
           setState(() {});
@@ -91,7 +92,6 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       _selectedVideo = video;
     });
-    
     if (video.url.isNotEmpty) {
       _initializeVideo(video.url);
     } else {
@@ -99,8 +99,131 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Future<void> _seekTo(Duration position) async {
+    if (_videoController == null || !_videoController!.value.isInitialized) {
+      return;
+    }
+
+    await _videoController!.pause();
+    await Future.delayed(const Duration(milliseconds: 100));
+    
+    await _videoController!.seekTo(position);
+    
+    await _videoController!.setVolume(1.0);
+    
+    await Future.delayed(const Duration(milliseconds: 100));
+    
+    if (_wasPlayingBeforeScrubbing) {
+      await _videoController!.play();
+    }
+    
+    setState(() {
+      _isScrubbing = false;
+    });
+  }
+
+  Future<void> _toggleFullScreen() async {
+    setState(() {
+      _isFullScreen = !_isFullScreen;
+    });
+
+    if (_isFullScreen) {
+      await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+      await SystemChrome.setPreferredOrientations([
+        DeviceOrientation.landscapeLeft,
+        DeviceOrientation.landscapeRight,
+      ]);
+    } else {
+      await _exitFullScreen();
+    }
+  }
+
+  Future<void> _exitFullScreen() async {
+    await SystemChrome.setEnabledSystemUIMode(
+      SystemUiMode.manual,
+      overlays: SystemUiOverlay.values,
+    );
+    await SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (_isFullScreen) {
+      return Scaffold(
+        backgroundColor: Colors.black,
+        body: Stack(
+          children: [
+            Center(
+              child: _isVideoInitialized && _videoController != null
+                  ? AspectRatio(
+                      aspectRatio: _videoController!.value.aspectRatio,
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          VideoPlayer(_videoController!),
+                          Positioned.fill(
+                            child: GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  if (_videoController!.value.isPlaying) {
+                                    _videoController!.pause();
+                                  } else {
+                                    _videoController!.play();
+                                  }
+                                });
+                              },
+                              child: Container(
+                                color: Colors.transparent,
+                                child: Center(
+                                  child: AnimatedOpacity(
+                                    opacity: _videoController!.value.isPlaying ? 0.0 : 1.0,
+                                    duration: const Duration(milliseconds: 200),
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: Colors.black54,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      padding: const EdgeInsets.all(16),
+                                      child: const Icon(
+                                        Icons.play_arrow,
+                                        color: Colors.white,
+                                        size: 48,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          Positioned(
+                            bottom: 0,
+                            left: 0,
+                            right: 0,
+                            child: _buildVideoControls(isFullScreen: true),
+                          ),
+                        ],
+                      ),
+                    )
+                  : const CircularProgressIndicator(color: Colors.blueAccent),
+            ),
+            Positioned(
+              top: 40,
+              left: 16,
+              child: IconButton(
+                icon: const Icon(Icons.fullscreen_exit, color: Colors.white, size: 32),
+                onPressed: _toggleFullScreen,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: const Color(0xFF121212),
       appBar: AppBar(
@@ -218,7 +341,6 @@ class _HomeScreenState extends State<HomeScreen> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Reproductor de vídeo
           ClipRRect(
             borderRadius: const BorderRadius.vertical(
               top: Radius.circular(16),
@@ -236,7 +358,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         alignment: Alignment.center,
                         children: [
                           VideoPlayer(_videoController!),
-                          // Overlay para detectar toques
                           Positioned.fill(
                             child: GestureDetector(
                               onTap: () {
@@ -271,7 +392,6 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                             ),
                           ),
-                          // Controles del video en la parte inferior
                           Positioned(
                             bottom: 0,
                             left: 0,
@@ -313,7 +433,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
             ),
           ),
-          // Información del vídeo
           Flexible(
             child: SingleChildScrollView(
               child: Padding(
@@ -372,7 +491,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildVideoControls() {
+  Widget _buildVideoControls({bool isFullScreen = false}) {
     if (_videoController == null || !_videoController!.value.isInitialized) {
       return const SizedBox.shrink();
     }
@@ -391,23 +510,47 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Barra de progreso
-          VideoProgressIndicator(
-            _videoController!,
-            allowScrubbing: true,
-            colors: const VideoProgressColors(
-              playedColor: Colors.blueAccent,
-              bufferedColor: Colors.white24,
-              backgroundColor: Colors.white12,
+          GestureDetector(
+            onHorizontalDragStart: (details) {
+              setState(() {
+                _isScrubbing = true;
+                _wasPlayingBeforeScrubbing = _videoController!.value.isPlaying;
+              });
+              if (_wasPlayingBeforeScrubbing) {
+                _videoController!.pause();
+              }
+            },
+            onHorizontalDragUpdate: (details) {
+              if (!_isScrubbing) return;
+              
+              final box = context.findRenderObject() as RenderBox?;
+              if (box == null) return;
+              
+              final position = details.localPosition.dx / box.size.width;
+              final duration = _videoController!.value.duration;
+              final newPosition = duration * position.clamp(0.0, 1.0);
+              
+              _videoController!.seekTo(newPosition);
+            },
+            onHorizontalDragEnd: (details) {
+              final currentPosition = _videoController!.value.position;
+              _seekTo(currentPosition);
+            },
+            child: VideoProgressIndicator(
+              _videoController!,
+              allowScrubbing: true,
+              colors: const VideoProgressColors(
+                playedColor: Colors.blueAccent,
+                bufferedColor: Colors.white24,
+                backgroundColor: Colors.white12,
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             ),
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           ),
-          // Controles
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             child: Row(
               children: [
-                // Botón play/pause
                 IconButton(
                   icon: Icon(
                     _videoController!.value.isPlaying
@@ -426,7 +569,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   },
                 ),
                 const Spacer(),
-                // Tiempo actual / duración total
                 Text(
                   _formatDuration(_videoController!.value.position),
                   style: const TextStyle(
@@ -450,6 +592,13 @@ class _HomeScreenState extends State<HomeScreen> {
                     fontWeight: FontWeight.w500,
                   ),
                 ),
+                if (!isFullScreen) ...[
+                  const SizedBox(width: 8),
+                  IconButton(
+                    icon: const Icon(Icons.fullscreen, color: Colors.white),
+                    onPressed: _toggleFullScreen,
+                  ),
+                ],
                 const SizedBox(width: 8),
               ],
             ),
