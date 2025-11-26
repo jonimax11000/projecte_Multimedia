@@ -1,6 +1,7 @@
 import '../../domain/repositories/videos_repository.dart';
 import '../../domain/entities/video.dart';
 import '../datasources/videos_api.dart';
+import '../mappers/video_mapper.dart';
 
 class VideosRepositoryImpl implements VideosRepository {
   final VideosApi api;
@@ -10,15 +11,6 @@ class VideosRepositoryImpl implements VideosRepository {
   @override
   Future<List<Video>> getVideos() async {
     final models = await api.fetchVideos();
-    return models
-        .map((m) => Video(
-              id: m['id'],
-              nom: m['nom'] ?? '',
-              descripcio: m['descripcio'] ?? '',
-              duration: m['duration'] ?? 0,
-              thumbnail: m['thumbnail'],
-              url: m['url'], 
-            ))
-        .toList();
+    return models.map((m) => VideoMapper.fromJson(m)).toList();
   }
 }
